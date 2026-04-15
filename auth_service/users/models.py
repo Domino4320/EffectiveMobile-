@@ -1,3 +1,14 @@
 from django.db import models
+from django.contrib.auth.hashers import make_password
 
-# Create your models here.
+
+class User(models.Model):
+    first_name = models.CharField()
+    last_name = models.CharField(blank=True, null=True)
+    patronymic = models.CharField(blank=True, null=True)
+    email = models.EmailField(unique=True)
+    password = models.CharField()
+
+    def save(self, *args, **kwargs):
+        self.password = make_password(self.password)
+        super().save(*args, **kwargs)
