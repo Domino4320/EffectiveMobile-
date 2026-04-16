@@ -31,7 +31,7 @@ class User(models.Model):
 
 class UserToken(models.Model):
     token = models.CharField(unique=True, db_index=True)
-    user_id = models.ForeignKey(User)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     expire_at = models.DateTimeField()
 
     def save(self, *args, **kwargs):
