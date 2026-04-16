@@ -36,4 +36,5 @@ class UserToken(models.Model):
 
     def save(self, *args, **kwargs):
         self.expire_at = datetime.now(timezone.utc) + timedelta(days=2)
+        self.token = secrets.token_hex(32)
         super().save(*args, **kwargs)
