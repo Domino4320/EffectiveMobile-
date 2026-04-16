@@ -8,6 +8,7 @@ class User(models.Model):
     patronymic = models.CharField(blank=True, null=True)
     email = models.EmailField(unique=True)
     password = models.CharField()
+    is_active = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
         self.password = make_password(self.password)
