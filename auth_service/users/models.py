@@ -8,8 +8,12 @@ class Role(models.Model):
     role_name = models.CharField(unique=True)
 
 
+class Resource(models.Model):
+    resource_name = models.CharField(unique=True)
+
+
 class RolePermission(models.Model):
-    resourse = models.CharField(unique=True)
+    resourse_id = models.ForeignKey(Resource, on_delete=models.CASCADE)
     can_update = models.BooleanField(default=True)
     can_delete = models.BooleanField(default=True)
     role_id = models.ForeignKey(Role, on_delete=models.CASCADE)
