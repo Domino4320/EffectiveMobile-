@@ -1,3 +1,4 @@
+from django.http import HttpRequest
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView, Response
@@ -13,7 +14,7 @@ from drf_spectacular.utils import extend_schema
 class RegisterView(APIView):
     serializer_class = RegisterSerializer
 
-    def post(self, request):
+    def post(self, request: HttpRequest):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -28,7 +29,7 @@ class RegisterView(APIView):
 class LoginView(APIView):
     serializer_class = LoginSerializer
 
-    def post(self, request):
+    def post(self, request: HttpRequest):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data.get("user")
@@ -44,5 +45,16 @@ class LoginView(APIView):
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
+class LogoutView(APIView):
+    def post(self, request: HttpRequest):
+        token = request.COOKIES.get("auth_token")
+        if token:
+            UserToken.objects.filter(token=token).delete()
+        response = Response({"detail": "Successfully logged out"}, status.HTTP_200_OK)
+        response.delete_cookie("auth_token")
+        return response
+
+
 class UserActionView(APIView):
+
     def patch(request): ...

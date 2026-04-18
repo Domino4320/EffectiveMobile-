@@ -13,7 +13,6 @@ class CustomAuthMiddleware:
         self.except_paths = [
             "registration",
             "login",
-            "logout",
         ]
 
     def __call__(self, request: HttpRequest):
@@ -29,5 +28,6 @@ class CustomAuthMiddleware:
         )
         if token_obj and datetime.now(timezone.utc) < token_obj.expire_at:
             request.user = token_obj.user_id
+            request.token = token_obj
             return self.next_step(request)
         return Response({"Auth error": "Not authorized"}, status.HTTP_401_UNAUTHORIZED)
