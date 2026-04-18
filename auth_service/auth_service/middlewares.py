@@ -1,4 +1,4 @@
-from django.http import HttpRequest
+from django.http import HttpRequest, JsonResponse
 from rest_framework import status
 from users.models import UserToken
 from datetime import datetime, timezone
@@ -13,6 +13,10 @@ class CustomAuthMiddleware:
         self.except_paths = [
             "registration",
             "login",
+            "swagger",
+            "redoc",
+            "schema",
+            "admin",
         ]
 
     def __call__(self, request: HttpRequest):
@@ -28,6 +32,13 @@ class CustomAuthMiddleware:
         )
         if token_obj and datetime.now(timezone.utc) < token_obj.expire_at:
             request.user = token_obj.user_id
+            if not request.user.is_active:
+                return JsonResponse(
+                    {"Auth error": "Your account is deleted"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             request.token = token_obj
             return self.next_step(request)
-        return Response({"Auth error": "Not authorized"}, status.HTTP_401_UNAUTHORIZED)
+        return JsonResponse(
+            {"Auth error": "Not authorized"}, status=status.HTTP_401_UNAUTHORIZED
+        )

@@ -2,7 +2,7 @@ from django.http import HttpRequest
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView, Response
-from .serializers import RegisterSerializer, LoginSerializer
+from .serializers import RegisterSerializer, LoginSerializer, UserPatchSerializer
 from .models import UserToken
 from drf_spectacular.utils import extend_schema
 
@@ -56,7 +56,21 @@ class LogoutView(APIView):
         return response
 
 
+@extend_schema(tags=["Действия с текущим пользователем"])
 class UserActionView(APIView):
-    serializer_class
 
-    def patch(request): ...
+    @extend_schema(request=UserPatchSerializer)
+    def patch(self, request):
+        serializer = UserPatchSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"detail": "user was successfully updated"}, status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        current_user = request.user
+        current_user.is_active = False
+        current_user.save()
+        return Response({"detail": "user was successfully deleted"}, status.HTTP_200_OK)

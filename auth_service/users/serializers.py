@@ -16,6 +16,13 @@ class BaseUserSerializer(serializers.ModelSerializer):
             "password",
         ]
 
+    def validate_password(self, value):
+        try:
+            validate_password(value)
+            return value
+        except ValidationError as e:
+            raise serializers.ValidationError(list(e.messages))
+
     def create(self, validated_data):
         user = User.objects.create(**validated_data)
         return user
@@ -28,13 +35,6 @@ class RegisterSerializer(BaseUserSerializer):
     class Meta:
         model = User
         fields = BaseUserSerializer.Meta.fields + ["confirm_password"]
-
-    def validate_password(self, value):
-        try:
-            validate_password(value)
-            return value
-        except ValidationError as e:
-            raise serializers.ValidationError(list(e.messages))
 
     def validate(self, data):
         if data.get("password") != data.get("confirm_password"):
