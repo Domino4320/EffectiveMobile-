@@ -5,10 +5,7 @@ from django.core.exceptions import ValidationError
 from .models import User
 
 
-class RegisterSerializer(serializers.ModelSerializer):
-
-    confirm_password = serializers.CharField()
-
+class BaseUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
@@ -17,8 +14,20 @@ class RegisterSerializer(serializers.ModelSerializer):
             "patronymic",
             "email",
             "password",
-            "confirm_password",
         ]
+
+    def create(self, validated_data):
+        user = User.objects.create(**validated_data)
+        return user
+
+
+class RegisterSerializer(BaseUserSerializer):
+
+    confirm_password = serializers.CharField()
+
+    class Meta:
+        model = User
+        fields = BaseUserSerializer.Meta.fields + ["confirm_password"]
 
     def validate_password(self, value):
         try:
@@ -36,8 +45,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("confirm_password")
-        user = User.objects.create(**validated_data)
-        return user
+        validated_data["password"] = make_password(validated_data["password"])
+        return super().create(validated_data)
 
 
 class LoginSerializer(serializers.Serializer):
@@ -55,3 +64,6 @@ class LoginSerializer(serializers.Serializer):
         raise serializers.ValidationError(
             {"Validation error": "Incorrect password or email"}
         )
+
+
+class UserPatchSerializer(BaseUserSerializer): ...

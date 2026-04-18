@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth.hashers import make_password
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -27,10 +26,6 @@ class User(models.Model):
     password = models.CharField()
     is_active = models.BooleanField(default=True)
     role_id = models.ForeignKey(Role, models.SET_DEFAULT, default=1)
-
-    def save(self, *args, **kwargs):
-        self.password = make_password(self.password)
-        super().save(*args, **kwargs)
 
 
 class UserToken(models.Model):

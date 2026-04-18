@@ -9,7 +9,7 @@ from drf_spectacular.utils import extend_schema
 
 @extend_schema(
     tags=["Регистрация"],
-    summary="Регистрация пользователя",
+    summary="Регистрация учетной записи",
 )
 class RegisterView(APIView):
     serializer_class = RegisterSerializer
@@ -24,7 +24,7 @@ class RegisterView(APIView):
 
 @extend_schema(
     tags=["Аутентификация"],
-    summary="Аутентификация пользователя",
+    summary="Вход в учетную запись",
 )
 class LoginView(APIView):
     serializer_class = LoginSerializer
@@ -45,6 +45,7 @@ class LoginView(APIView):
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(tags=["Аутентификация"], summary="Выход из учетной записи")
 class LogoutView(APIView):
     def post(self, request: HttpRequest):
         token = request.COOKIES.get("auth_token")
@@ -56,5 +57,6 @@ class LogoutView(APIView):
 
 
 class UserActionView(APIView):
+    serializer_class
 
     def patch(request): ...
