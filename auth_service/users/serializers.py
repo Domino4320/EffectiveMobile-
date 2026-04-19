@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password, check_password
 from django.core.exceptions import ValidationError
-from .models import User
+from .models import User, RolePermission, UserPermission, Role, Resource
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
@@ -67,3 +67,69 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserPatchSerializer(BaseUserSerializer): ...
+
+
+class RolePermissionSerializer(serializers.ModelSerializer):
+
+    role_name = serializers.SlugRelatedField(
+        slug_field="role_name", queryset=Role.objects.all(), source="role"
+    )
+
+    resource = serializers.SlugRelatedField(
+        slug_field="resource_name", queryset=Resource.objects.all()
+    )
+
+    class Meta:
+        model = RolePermission
+        fields = ["role_name", "resource", "access_level"]
+        validators = []
+
+    def validate_access_level(self, value):
+        if value == 4:
+            raise serializers.ValidationError(
+                {"details": "admin can`t give admin`s permissions for other users"},
+            )
+        return value
+
+    def create(self, validated_data):
+        role = validated_data.pop("role")
+        resource = validated_data.pop("resource")
+        instance, created = RolePermission.objects.update_or_create(
+            role=role,
+            resource=resource,
+            defaults={"access_level": validated_data["access_level"]},
+        )
+        return instance
+
+
+class UserPermissionSerializer(serializers.ModelSerializer):
+
+    user_email = serializers.SlugRelatedField(
+        slug_field="email", queryset=User.objects.all(), source="user"
+    )
+
+    resource = serializers.SlugRelatedField(
+        slug_field="resource_name", queryset=Resource.objects.all()
+    )
+
+    class Meta:
+        model = UserPermission
+        fields = ["user_email", "resource", "access_level"]
+        validators = []
+
+    def validate_access_level(self, value):
+        if value == 4:
+            raise serializers.ValidationError(
+                {"details": "admin can`t give admin`s permissions for other users"},
+            )
+        return value
+
+    def create(self, validated_data):
+        user = validated_data.pop("user")
+        resource = validated_data.pop("resource")
+        instance, created = UserPermission.objects.update_or_create(
+            user=user,
+            resource=resource,
+            defaults={"access_level": validated_data["access_level"]},
+        )
+        return instance

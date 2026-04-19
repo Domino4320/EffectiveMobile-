@@ -33,15 +33,20 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data.get("user")
-            token = UserToken.objects.create(user=user)
-            response = Response({"success": True}, status.HTTP_200_OK)
-            response.set_cookie(
-                key="auth_token",
-                value=token.token,
-                expires=token.expire_at,
-                httponly=True,
-            )
-            return response
+            if user.is_active:
+                token = UserToken.objects.create(user=user)
+                response = Response({"success": True}, status.HTTP_200_OK)
+                response.set_cookie(
+                    key="auth_token",
+                    value=token.token,
+                    expires=token.expire_at,
+                    httponly=True,
+                )
+                return response
+            else:
+                return Response(
+                    {"details": "your account is deleted"}, status.HTTP_400_BAD_REQUEST
+                )
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
@@ -73,4 +78,5 @@ class UserActionView(APIView):
         current_user = request.user
         current_user.is_active = False
         current_user.save()
+        LogoutView().post(request)
         return Response({"detail": "user was successfully deleted"}, status.HTTP_200_OK)

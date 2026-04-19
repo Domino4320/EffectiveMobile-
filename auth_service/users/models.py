@@ -34,7 +34,7 @@ class User(models.Model):
 
 
 class RolePermission(models.Model):
-    resourсe = models.ForeignKey(Resource, on_delete=models.CASCADE)
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE)
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
     access_level = models.IntegerField(
         choices=AccessLevelChoice.choices,
@@ -42,11 +42,11 @@ class RolePermission(models.Model):
     )
 
     class Meta:
-        unique_together = ("resourсe", "role")
+        unique_together = ("resource", "role")
 
 
 class UserPermission(models.Model):
-    resourсe = models.ForeignKey(Resource, on_delete=models.CASCADE)
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     access_level = models.IntegerField(
         choices=AccessLevelChoice.choices,
@@ -54,7 +54,7 @@ class UserPermission(models.Model):
     )
 
     class Meta:
-        unique_together = ("resourсe", "user")
+        unique_together = ("resource", "user")
 
 
 class UserToken(models.Model):
