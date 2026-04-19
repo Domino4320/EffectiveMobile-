@@ -3,19 +3,24 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 
+class AccessLevelChoice(models.IntegerChoices):
+    NO_ACCESS = 0, "No access"
+    READ = 1, "Read only"
+    READ_WRITE = 2, "Read, Write, Update"
+    FULL_CRUD = 3, "Read, Write, Update, Delete"
+    ADMIN = 4, "Admin access level"
+
+
 class Role(models.Model):
     role_name = models.CharField(unique=True)
+    default_permission_level = models.IntegerField(
+        choices=AccessLevelChoice.choices,
+        default=AccessLevelChoice.FULL_CRUD,
+    )
 
 
 class Resource(models.Model):
     resource_name = models.CharField(unique=True)
-
-
-class RolePermission(models.Model):
-    resourse_id = models.ForeignKey(Resource, on_delete=models.CASCADE)
-    can_update = models.BooleanField(default=True)
-    can_delete = models.BooleanField(default=True)
-    role_id = models.ForeignKey(Role, on_delete=models.CASCADE)
 
 
 class User(models.Model):
@@ -25,12 +30,36 @@ class User(models.Model):
     email = models.EmailField(unique=True, db_index=True)
     password = models.CharField()
     is_active = models.BooleanField(default=True)
-    role_id = models.ForeignKey(Role, models.SET_DEFAULT, default=1)
+    role = models.ForeignKey(Role, models.SET_DEFAULT, default=1)
+
+
+class RolePermission(models.Model):
+    resourсe = models.ForeignKey(Resource, on_delete=models.CASCADE)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    access_level = models.IntegerField(
+        choices=AccessLevelChoice.choices,
+        default=AccessLevelChoice.FULL_CRUD,
+    )
+
+    class Meta:
+        unique_together = ("resourсe", "role")
+
+
+class UserPermission(models.Model):
+    resourсe = models.ForeignKey(Resource, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    access_level = models.IntegerField(
+        choices=AccessLevelChoice.choices,
+        default=AccessLevelChoice.FULL_CRUD,
+    )
+
+    class Meta:
+        unique_together = ("resourсe", "user")
 
 
 class UserToken(models.Model):
     token = models.CharField(unique=True, db_index=True)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     expire_at = models.DateTimeField()
 
     def save(self, *args, **kwargs):

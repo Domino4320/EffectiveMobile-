@@ -33,7 +33,7 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data.get("user")
-            token = UserToken.objects.create(user_id=user)
+            token = UserToken.objects.create(user=user)
             response = Response({"success": True}, status.HTTP_200_OK)
             response.set_cookie(
                 key="auth_token",
